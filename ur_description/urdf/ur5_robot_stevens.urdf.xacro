@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro"
+       name="ur5" >
+
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
+
+  <!-- common stuff -->
+  <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
+
+  <!-- ur5 -->
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+
+  <!-- Nasa Hand -->
+  <xacro:include filename="$(find nasa_hand_description)/urdf/nasa_hand_macro.xacro"/>
+  <xacro:include filename="$(find nasa_hand_description)/urdf/nasa_hand_transmission_macro.xacro"/>
+  <xacro:load_nasa_hand/>
+  <xacro:load_nasa_hand_transmissions/>
+  <joint name="arm_to_nasa_hand" type="fixed">
+    <origin xyz="0 0 0" rpy="0 ${pi/2} 0" />
+    <parent link="ee_link" />
+    <child link="base_link_palm" />
+  </joint>
+
+
+  <!-- arm -->
+  <xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
+  <xacro:ur5_robot prefix="" joint_limited="false"
+    transmission_hw_interface="$(arg transmission_hw_interface)"
+    kinematics_file="${load_yaml('$(arg kinematics_config)')}"
+  />
+
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link = "base_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+
+
+
+</robot>
