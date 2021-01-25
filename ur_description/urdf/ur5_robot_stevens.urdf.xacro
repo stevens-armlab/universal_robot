@@ -1,42 +1,48 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro"
-       name="ur5" >
-
-  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
-
+<robot name="ur5" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/EffortJointInterface"/>
+  <xacro:arg name="attach_hand" default="false"/>
   <!-- common stuff -->
-  <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
-
+  <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro"/>
   <!-- ur5 -->
-  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
-
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro"/>
   <!-- Nasa Hand -->
   <xacro:include filename="$(find nasa_hand_description)/urdf/nasa_hand_macro.xacro"/>
   <xacro:include filename="$(find nasa_hand_description)/urdf/nasa_hand_transmission_macro.xacro"/>
-  <xacro:load_nasa_hand/>
-  <xacro:load_nasa_hand_transmissions/>
-  <joint name="arm_to_nasa_hand" type="fixed">
-    <origin xyz="0 0 0" rpy="0 ${pi/2} 0" />
-    <parent link="ee_link" />
-    <child link="base_link_palm" />
-  </joint>
-
-
+  <xacro:if value="$(arg attach_hand)">
+    <xacro:load_nasa_hand/>
+    <xacro:load_nasa_hand_transmissions/>
+    <joint name="arm_to_nasa_hand" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="tool0"/>
+      <child link="base_link_palm"/>
+    </joint>
+  </xacro:if>
   <!-- arm -->
   <xacro:arg name="kinematics_config" default="$(find ur_description)/config/ur5_default.yaml"/>
-  <xacro:ur5_robot prefix="" joint_limited="false"
-    transmission_hw_interface="$(arg transmission_hw_interface)"
-    kinematics_file="${load_yaml('$(arg kinematics_config)')}"
-  />
+  <xacro:arg name="limited" default="true"/>
+  
+  <xacro:if value="$(arg limited)">
+    <xacro:ur5_robot joint_limited="false" kinematics_file="${load_yaml('$(arg kinematics_config)')}" prefix="" transmission_hw_interface="$(arg transmission_hw_interface)"/>
+  </xacro:if>
+  
+  <xacro:unless value="$(arg limited)">
+    <xacro:ur5_robot prefix="" joint_limited="true"
+      shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
+      shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
+      elbow_joint_lower_limit="${-pi}" elbow_joint_upper_limit="${pi}"
+      wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
+      wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
+      wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
+      transmission_hw_interface="$(arg transmission_hw_interface)"
+      kinematics_file="${load_yaml('$(arg kinematics_config)')}"
+    />
+  </xacro:unless>
 
-  <link name="world" />
-
+  <link name="world"/>
   <joint name="world_joint" type="fixed">
-    <parent link="world" />
-    <child link = "base_link" />
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
   </joint>
-
-
-
 </robot>
