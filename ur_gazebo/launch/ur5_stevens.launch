@@ -28,7 +28,15 @@
   <!-- start this controller -->
   <rosparam file="$(find ur_gazebo)/controller/arm_controller_ur5_stevens.yaml" command="load"/>
   <rosparam file="$(find ur_gazebo)/controller/joint_state_controller.yaml" command="load"/>
-  <node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller" respawn="false" output="screen"/>
+  <node name="arm_trajectory_controller_spawner" pkg="controller_manager" type="spawner" args="arm_controller" respawn="false" output="screen"/>
+  <node name="arm_position_controller_spawner" output="screen" pkg="controller_manager" respawn="false" type="spawner"
+      args="--stopped
+            shoulder_pan_position_controller
+            shoulder_lift_position_controller
+            elbow_position_controller
+            wrist_1_position_controller
+            wrist_2_position_controller
+            wrist_3_position_controller"/>
 
   <group if="$(arg attach_hand)">
     <rosparam file="$(find nasa_hand_control)/config/nasa_hand_control.yaml" command="load"/>
@@ -61,4 +69,6 @@
     <arg name="attach_hand" value="$(arg attach_hand)"/>
   </include> 
 
+  <arg name="start_delay_seconds" default="10"/>
+  <node name="home_the_arm" pkg="ur_gazebo" type="home_robot.py" output="log" respawn="false" launch-prefix="bash -c 'sleep $(arg start_delay_seconds); $0 $@'"/>
 </launch>
